@@ -40,4 +40,4 @@ The original work of this tool is:
 - Canete, J., Chaperon, G., Fuentes, R., Ho, J. H., Kang, H., & Pérez, J. (2020). Spanish pre-trained bert model and evaluation data. Pml4dc at iclr, 2020, 2020.
 - https://github.com/dccuchile/beto
 
-The license of the original work is CC-BY-4.0 license
+The license of the original work is CC-BY-4.0 license.
