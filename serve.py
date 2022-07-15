@@ -17,8 +17,12 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 APP_ROOT = "./"
 app.config["APPLICATION_ROOT"] = APP_ROOT
 app.config["UPLOAD_FOLDER"] = "files/"
+app.config["JSON_ADD_STATUS"] = False
+app.config["JSON_SORT_KEYS"] = False
+
 
 json_app = FlaskJSON(app)
+
 
 model_path = "dccuchile/bert-base-spanish-wwm-uncased"
 tokenizer = AutoTokenizer.from_pretrained(model_path, truncation=True, max_length=512)
@@ -35,7 +39,7 @@ def predict_text(content):
 def prepare_output_format(predict):
     list_options = list()
     for result in predict:
-        list_options.append({"content": result['token_str'], "score": result['score']})
+        list_options.append({"content": result["token_str"], "score": result["score"]})
 
     return {"response": {"type": "texts", "texts": list_options}}
 
@@ -45,20 +49,33 @@ def prepare_output_format(predict):
 def predict_json():
 
     data = request.get_json()
-    if (data.get("type") != "text") or ("content" not in data):
-        output = invalid_request_error(None)
-        return output
-    content = data["content"]
+    if data.get("type") != "text":
+        return generate_failure_response(
+            status=400,
+            code="elg.request.type.unsupported",
+            text="Request type {0} not supported by this service",
+            params=[data["type"]],
+            detail=None,
+        )
+
+    if "content" not in data:
+        return invalid_request_error(
+            None,
+        )
+
+    content = data.get("content")
     try:
         output = predict_text(content)
         return output
     except Exception as e:
+        text = "Unexpected error. Possible causes are that your input text may be too long or your input does not contain '[MASK]' element"
+        # Standard message for internal error - the real error message goes in params
         return generate_failure_response(
-            status=404,
+            status=500,
             code="elg.service.internalError",
-            text=None,
-            params=None,
-            detail=str(e),
+            text="Internal error during processing: {0}",
+            params=[text],
+            detail=e.__str__(),
         )
 
 
